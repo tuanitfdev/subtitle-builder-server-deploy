@@ -20,11 +20,13 @@ RUN pip install --no-cache-dir packaging ninja
 # Quá trình này sẽ diễn ra mượt mà vì image devel đã có sẵn nvcc và torch
 RUN pip install --no-cache-dir flash-attn --no-build-isolation
 
+RUN pip install insanely-fast-whisper --ignore-requires-python
+
 # Cài đặt các dependencies còn lại từ file requirements
-COPY requirement.txt .
-RUN pip install --no-cache-dir -r requirement.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-CMD ["python3"]
+# CMD ["python3"]
