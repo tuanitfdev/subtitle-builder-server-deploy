@@ -25,7 +25,7 @@ RUN pip wheel --no-cache-dir --wheel-dir=/build/wheels insanely-fast-whisper --i
 
 # STAGE 2: Final
 # Sử dụng image runtime nhẹ hơn nhiều để chạy ứng dụng
-FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
@@ -38,15 +38,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy các file .whl đã build từ stage builder sang
 COPY --from=builder /build/wheels /app/wheels
 
-# Cài đặt torchvision ĐÚNG PHIÊN BẢN tương thích với torch 2.4.0
-# Với torch 2.4.0, torchvision nên là 0.19.0. 
-# Quan trọng: Cài đặt cùng lúc để pip tự giải quyết dependency chính xác nhất.
-RUN pip install --no-cache-dir torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 && \
+# SỬA LỖI: Gỡ bỏ torch/torchvision có sẵn và cài đặt lại ĐỒNG BỘ để nhận diện đúng CUDA
+# Lỗi "operator torchvision::nms does not exist" thường do torchvision không tìm thấy CUDA 
+# khi được cài đặt riêng lẻ hoặc bị lệch phiên bản với torch có sẵn trong image.
+RUN pip uninstall -y torch torchvision && \
+    pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 && \
     pip install --no-cache-dir /app/wheels/*.whl && \
     rm -rf /app/wheels
 
-# Kiểm tra lại phiên bản torch và torchvision để đảm bảo không bị ghi đè
-RUN python3 -c "import torch; import torchvision; print(f'Torch: {torch.__version__}'); print(f'Torchvision: {torchvision.__version__}'); import torchvision.ops; print('Torchvision Ops loaded successfully')"
+# Kiểm tra lại kỹ hơn: load torchvision.ops và thử gọi một hàm ops
+RUN python3 -c "import torch; import torchvision; print(f'Torch version: {torch.__version__}'); print(f'Is CUDA available: {torch.cuda.is_available()}'); import torchvision.ops; print('Torchvision Ops loaded successfully')"
 
 # Cài đặt các dependencies từ file requirements (tập trung logic app ở stage cuối)
 COPY requirements.txt .
