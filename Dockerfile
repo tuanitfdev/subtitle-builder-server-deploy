@@ -38,6 +38,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy các file .whl đã build từ stage builder sang
 COPY --from=builder /build/wheels /app/wheels
 
+# Cài đặt torchvision trước, sau đó mới cài các wheels đã build
+RUN pip install --no-cache-dir torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 && \
+    pip install --no-cache-dir /app/wheels/*.whl && \
+    rm -rf /app/wheels
+
 # Chỉ việc cài đặt các file .whl đã có sẵn (không cần build lại, không cần trình biên dịch)
 RUN pip install --no-cache-dir /app/wheels/*.whl && rm -rf /app/wheels
 
