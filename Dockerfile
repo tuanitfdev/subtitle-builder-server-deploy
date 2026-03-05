@@ -1,5 +1,5 @@
 # Single Stage Dockerfile for debugging runtime issues
-FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-devel
+FROM nvcr.io/nvidia/pytorch:25.02-py3
 
 # Thiết lập biến môi trường để tránh các câu hỏi tương tác
 ENV DEBIAN_FRONTEND=noninteractive
