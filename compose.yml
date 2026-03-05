@@ -1,6 +1,6 @@
 services:
   subtitle-builder:
-  image: subtitle-builder:latest
+    image: subtitle-builder:latest
     build:
       context: .
       dockerfile: Dockerfile
