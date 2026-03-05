@@ -1,30 +1,49 @@
-# Sử dụng image PyTorch chính thức với CUDA 12.1 và cuDNN 8 bản devel
-# Bản devel (development) cần thiết để có trình biên dịch nvcc cài flash-attn
-FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-devel
+# STAGE 1: Builder
+# Sử dụng image devel để có trình biên dịch nvcc cài flash-attn
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-devel AS builder
 
-# Thiết lập biến môi trường để tránh các câu hỏi tương tác trong quá trình cài đặt
+# Thiết lập biến môi trường để tránh các câu hỏi tương tác
 ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /build
 
-# Cài đặt các thư viện hệ thống cần thiết cho xử lý âm thanh (ffmpeg)
+# Cài đặt các công cụ cần thiết để biên dịch (build-essential chứa gcc, g++, v.v.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cài đặt các thư viện bổ trợ cho quá trình build
+RUN pip install --no-cache-dir packaging ninja
+
+# Tạo thư mục chứa các file .whl đã build xong
+RUN mkdir -p /build/wheels
+
+# Build flash-attn và insanely-fast-whisper thành file wheel (.whl)
+# Cách này giúp chúng ta mang "thành phẩm" sang stage sau cực kỳ sạch sẽ
+RUN pip wheel --no-cache-dir --wheel-dir=/build/wheels flash-attn --no-build-isolation
+RUN pip wheel --no-cache-dir --wheel-dir=/build/wheels insanely-fast-whisper --ignore-requires-python
+
+
+# STAGE 2: Final
+# Sử dụng image runtime nhẹ hơn nhiều để chạy ứng dụng
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
+
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
+
+# Cài đặt ffmpeg (cần thiết để xử lý âm thanh khi chạy)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Copy các file .whl đã build từ stage builder sang
+COPY --from=builder /build/wheels /app/wheels
 
-# Cài đặt các thư viện bổ trợ cho quá trình build flash-attn
-# (Image pytorch thường đã có sẵn torch, nhưng cần thêm packaging/ninja để build nhanh hơn)
-RUN pip install --no-cache-dir packaging ninja
+# Chỉ việc cài đặt các file .whl đã có sẵn (không cần build lại, không cần trình biên dịch)
+RUN pip install --no-cache-dir /app/wheels/*.whl && rm -rf /app/wheels
 
-# Cài đặt flash-attn với flag --no-build-isolation
-# Quá trình này sẽ diễn ra mượt mà vì image devel đã có sẵn nvcc và torch
-RUN pip install --no-cache-dir flash-attn --no-build-isolation
-
-RUN pip install insanely-fast-whisper --ignore-requires-python
-
-# Cài đặt các dependencies còn lại từ file requirements
+# Cài đặt các dependencies từ file requirements (tập trung logic app ở stage cuối)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN if [ -s requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi
 
 # Copy toàn bộ code vào sau cùng
 COPY . .
