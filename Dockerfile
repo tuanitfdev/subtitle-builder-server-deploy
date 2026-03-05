@@ -41,9 +41,9 @@ COPY --from=builder /build/wheels /app/wheels
 # SỬA LỖI: Gỡ bỏ torch/torchvision có sẵn và cài đặt lại ĐỒNG BỘ để nhận diện đúng CUDA
 # Lỗi "operator torchvision::nms does not exist" thường do torchvision không tìm thấy CUDA 
 # khi được cài đặt riêng lẻ hoặc bị lệch phiên bản với torch có sẵn trong image.
-RUN pip uninstall -y torch torchvision && \
-    pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 && \
-    pip install --no-cache-dir /app/wheels/*.whl && \
+# RUN pip uninstall -y torch torchvision && \
+#     pip install --no-cache-dir torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121 && \
+RUN pip install --no-cache-dir /app/wheels/*.whl && \
     rm -rf /app/wheels
 
 # Kiểm tra lại kỹ hơn: load torchvision.ops và thử gọi một hàm ops
