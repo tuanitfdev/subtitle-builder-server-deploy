@@ -20,8 +20,8 @@ results = model.transcribe(
     # stable-ts có các thuật toán giúp timestamp khớp với âm thanh hơn
 )
 
-# Xuất kết quả ra file SRT với timestamp câu tự nhiên
-results.to_srt_vtt('output.srt')
+# Xuất kết quả ra file SRT với timestamp câu tự nhiên (không highlight từ đang phát âm)
+results.to_srt_vtt('output.srt', segment_level=True, word_level=False)
 
 # Xuất kết quả text thuần ra file outputPlainText.txt
 with open('outputPlainText.txt', 'w', encoding='utf-8') as f:
