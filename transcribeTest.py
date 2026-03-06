@@ -8,7 +8,12 @@ print(f"Using model_kwargs: {model_kwargs}")
 
 # Load model whisper-large-v3-turbo bằng stable-ts
 # Sử dụng faster-whisper làm backend để hỗ trợ batch_size và chạy cực nhanh trên L4
-model = stable_whisper.load_faster_whisper('large-v3-turbo', device='cuda')
+# compute_type='float16' giúp kích hoạt Flash Attention 2 và Tensor Cores trên GPU L4
+model = stable_whisper.load_faster_whisper(
+    'large-v3-turbo', 
+    device='cuda', 
+    compute_type='float16'
+)
 
 # Tiến hành transcribe với các tùy chọn để tối ưu timestamp và độ tự nhiên
 results = model.transcribe(
