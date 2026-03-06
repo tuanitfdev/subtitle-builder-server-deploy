@@ -14,7 +14,8 @@ model = stable_whisper.load_model('large-v3-turbo', device='cuda:0')
 # - language: có thể chỉ định 'vi' nếu là tiếng Việt
 # - word_timestamps: True để lấy timestamp chính xác từng từ
 results = model.transcribe(
-    "GoIn100Seconds_1mf.mp3",
+    # "GoIn100Seconds_1mf.mp3",
+    "GoIn100Seconds_full.mp3",
     language=None, # Tự động nhận diện ngôn ngữ hoặc điền 'vi'
     word_timestamps=True,
     # stable-ts có các thuật toán giúp timestamp khớp với âm thanh hơn
