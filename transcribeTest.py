@@ -7,19 +7,15 @@ model_kwargs = {"attn_implementation": "flash_attention_2"} if is_flash_attn_2_a
 print(f"Using model_kwargs: {model_kwargs}")
 
 # Load model whisper-large-v3-turbo bằng stable-ts
-# stable-ts giúp lấy timestamp chính xác ở mức độ từ (word-level) và câu (sentence-level)
-model = stable_whisper.load_model('large-v3-turbo', device='cuda:0')
+# Sử dụng faster-whisper làm backend để hỗ trợ batch_size và chạy cực nhanh trên L4
+model = stable_whisper.load_faster_whisper('large-v3-turbo', device='cuda')
 
 # Tiến hành transcribe với các tùy chọn để tối ưu timestamp và độ tự nhiên
-# - language: có thể chỉ định 'vi' nếu là tiếng Việt
-# - word_timestamps: True để lấy timestamp chính xác từng từ
 results = model.transcribe(
-    # "GoIn100Seconds_1mf.mp3",
     "GoIn100Seconds_full.mp3",
     language=None, # Tự động nhận diện ngôn ngữ hoặc điền 'vi'
     word_timestamps=True,
-    batch_size=24, # Tối ưu cho GPU L4 (24GB VRAM)
-    # stable-ts có các thuật toán giúp timestamp khớp với âm thanh hơn
+    batch_size=24, # Tối ưu cho GPU L4 (24GB VRAM) - Yêu cầu load_faster_whisper
 )
 
 # Xuất kết quả ra file SRT với timestamp câu tự nhiên (không highlight từ đang phát âm)
