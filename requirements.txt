@@ -1,0 +1,5 @@
+stable-ts
+faster-whisper
+transformers
+optimum
+accelerate
