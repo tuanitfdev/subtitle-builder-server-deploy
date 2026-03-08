@@ -1,0 +1,16 @@
+[project]
+name = "subtitle-builder"
+version = "0.1.0"
+description = "Subtitle builder using faster-whisper and stable-ts"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "stable-ts",
+    "faster-whisper",
+    "transformers",
+    "optimum",
+    "accelerate",
+]
+
+[tool.uv]
+managed = true
