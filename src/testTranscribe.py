@@ -17,7 +17,7 @@ model = stable_whisper.load_faster_whisper(
 
 # Tiến hành transcribe với các tùy chọn để tối ưu timestamp và độ tự nhiên
 results = model.transcribe(
-    "GoIn100Seconds_full.mp3",
+    "data/stor/GoIn100Seconds_full.mp3",
     language=None, # Tự động nhận diện ngôn ngữ hoặc điền 'vi'
     word_timestamps=True,
     batch_size=24, # Tối ưu cho GPU L4 (24GB VRAM) - Yêu cầu load_faster_whisper
