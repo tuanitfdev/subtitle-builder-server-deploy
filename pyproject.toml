@@ -10,6 +10,9 @@ dependencies = [
     "transformers",
     "optimum",
     "accelerate",
+    "litserve",
+    "aioboto3",
+    "aiofiles",
 ]
 
 [tool.uv]
