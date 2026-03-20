@@ -1,6 +1,7 @@
 import litserve as ls
 import torch
-import stable_ts as whisper
+import stable_whisper as whisper
+from transformers.utils import is_flash_attn_2_available
 import aioboto3
 import os
 import uuid
@@ -12,19 +13,19 @@ R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
 R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
 R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
 
-class WhisperSubtitleAPI(ls.LitAPI):
+class SubtitleBuilderAPI(ls.LitAPI):
     def setup(self, device):
         self.device = device
         print(f"Loading Whisper model on {device}...")
-        # Load model stable-ts (faster-whisper backend)
-        # Tối ưu cho GPU với float16
-        self.model = whisper.load_model(
-            "large-v3", 
+        # Load model stable-whisper (faster-whisper backend)
+        # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
+        self.model = whisper.load_faster_whisper(
+            "large-v3-turbo", 
             device=self.device, 
             compute_type="float16"
         )
         # Khởi tạo session cho aioboto3
-        self.session = aioboto3.Session()
+        self.session = aioboto3.Session()        
 
     async def decode_request(self, request):
         """
@@ -35,7 +36,7 @@ class WhisperSubtitleAPI(ls.LitAPI):
             return {"error": "Missing file_key"}
 
         # Tạo path tạm để lưu audio
-        temp_file = f"/tmp/{uuid.uuid4()}_{os.path.basename(file_key)}"
+        temp_file = f"data/stor/{os.path.basename(file_key)}"
         
         print(f"Downloading {file_key} from R2 to {temp_file}...")
         
@@ -61,15 +62,19 @@ class WhisperSubtitleAPI(ls.LitAPI):
             return x
             
         audio_path = x["audio_path"]
+        audio_filename = os.path.basename(audio_path)
         try:
             print(f"Transcribing {audio_path}...")
             result = self.model.transcribe(
                 audio_path,
                 language=x.get("language"),
                 task=x.get("task"),
-                vad=True
+                vad=True,
+                word_timestamps=True,
+                batch_size=24
             )
-            return {"result": result.to_dict(), "audio_path": audio_path}
+            return {"result": result,
+              "audio_filename": audio_filename}
         except Exception as e:
             return {"error": str(e), "audio_path": audio_path}
 
@@ -77,8 +82,18 @@ class WhisperSubtitleAPI(ls.LitAPI):
         """
         Trả về kết quả và dọn dẹp file tạm
         """
+
+        audio_filename = output.get("audio_filename")
+        audio_filename0Ext = audio_filename.split(".")[0]
+        rawResult = output.get("result")
+        rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
         # Dọn dẹp file tạm sau khi đã xử lý xong
-        audio_path = output.get("audio_path")
+        audio_path = f"data/stor/{audio_filename}"
+        result = {
+            "subtitleFileKey": f"{audio_filename0Ext}.srt",
+            "audioFileKey": audio_filename,
+            "msg": "Subtitle generated successfully"
+        }
         if audio_path and os.path.exists(audio_path):
             os.remove(audio_path)
             print(f"Removed temp file: {audio_path}")
@@ -89,7 +104,7 @@ class WhisperSubtitleAPI(ls.LitAPI):
         return {"status": "success", "data": output["result"]}
 
 if __name__ == "__main__":
-    api = WhisperSubtitleAPI()
+    api = SubtitleBuilderAPI()
     
     # Cấu hình server
     server = ls.LitServer(
