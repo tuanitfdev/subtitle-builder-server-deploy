@@ -40,4 +40,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-# CMD ["python3"]
+CMD ["uv", "run", "python", "src/mainServer.py"]

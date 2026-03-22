@@ -2,16 +2,9 @@ import litserve as ls
 import torch
 import stable_whisper as whisper
 from transformers.utils import is_flash_attn_2_available
-import aioboto3
+from r2_manager import R2Manager
 import os
-import uuid
-from contextlib import asynccontextmanager
 
-# Giả sử bạn config R2/S3 qua biến môi trường
-R2_BUCKET = os.getenv("R2_BUCKET_NAME")
-R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
-R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
-R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
 
 class SubtitleBuilderAPI(ls.LitAPI):
     def setup(self, device):
@@ -19,13 +12,13 @@ class SubtitleBuilderAPI(ls.LitAPI):
         print(f"Loading Whisper model on {device}...")
         # Load model stable-whisper (faster-whisper backend)
         # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
-        self.model = whisper.load_faster_whisper(
-            "large-v3-turbo", 
-            device=self.device, 
-            compute_type="float16"
-        )
-        # Khởi tạo session cho aioboto3
-        self.session = aioboto3.Session()        
+        # self.model = whisper.load_faster_whisper(
+        #     "large-v3-turbo", 
+        #     device=self.device, 
+        #     compute_type="float16"
+        # )
+        print("da mock load faster whisper")
+        self.r2_manager = R2Manager.get_instance()
 
     async def decode_request(self, request):
         """
@@ -40,13 +33,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
         
         print(f"Downloading {file_key} from R2 to {temp_file}...")
         
-        async with self.session.client(
-            's3',
-            endpoint_url=R2_ENDPOINT_URL,
-            aws_access_key_id=R2_ACCESS_KEY_ID,
-            aws_secret_access_key=R2_SECRET_ACCESS_KEY
-        ) as s3:
-            await s3.download_file(R2_BUCKET, file_key, temp_file)
+        await self.r2_manager.download_file(file_key, temp_file)
             
         return {
             "audio_path": temp_file,
@@ -65,14 +52,15 @@ class SubtitleBuilderAPI(ls.LitAPI):
         audio_filename = os.path.basename(audio_path)
         try:
             print(f"Transcribing {audio_path}...")
-            result = self.model.transcribe(
-                audio_path,
-                language=x.get("language"),
-                task=x.get("task"),
-                vad=True,
-                word_timestamps=True,
-                batch_size=24
-            )
+            # result = self.model.transcribe(
+            #     audio_path,
+            #     language=x.get("language"),
+            #     task=x.get("task"),
+            #     vad=True,
+            #     word_timestamps=True,
+            #     batch_size=24
+            # )
+            result = "da transcribe thanh cong"
             return {"result": result,
               "audio_filename": audio_filename}
         except Exception as e:
@@ -86,17 +74,22 @@ class SubtitleBuilderAPI(ls.LitAPI):
         audio_filename = output.get("audio_filename")
         audio_filename0Ext = audio_filename.split(".")[0]
         rawResult = output.get("result")
-        rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
+        print("da xu ly rawResult")
+        # rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
         # Dọn dẹp file tạm sau khi đã xử lý xong
-        audio_path = f"data/stor/{audio_filename}"
+        # tao file mocked srt
+        with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
+            f.write("test")
+        print("da tao file mocked srt")
         result = {
             "subtitleFileKey": f"{audio_filename0Ext}.srt",
             "audioFileKey": audio_filename,
             "msg": "Subtitle generated successfully"
         }
-        if audio_path and os.path.exists(audio_path):
-            os.remove(audio_path)
-            print(f"Removed temp file: {audio_path}")
+        # audio_path = f"data/stor/{audio_filename}"
+        # if audio_path and os.path.exists(audio_path):
+        #     os.remove(audio_path)
+        #     print(f"Removed temp file: {audio_path}")
             
         if "error" in output:
             return {"status": "error", "message": output["error"]}
