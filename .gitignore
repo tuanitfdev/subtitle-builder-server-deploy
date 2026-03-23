@@ -1,2 +1,6 @@
 data/stor/*
 !data/stor/sample
+.env
+__pycache__
+*.egg-info
+build

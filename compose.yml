@@ -1,18 +1,18 @@
 services:
-  subtitle-builder:
-    image: subtitle-builder:latest
+  subtitle-builder-server:
+    image: subtitle-builder-server:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: subtitle_builder_container
+    container_name: subtitle_builder_server_container
     # Cấu hình quan trọng nhất để nhận diện GPU NVIDIA
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:
       - .:/app

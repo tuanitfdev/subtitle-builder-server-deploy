@@ -1,7 +1,7 @@
 [project]
-name = "subtitle-builder"
+name = "subtitle-builder-server"
 version = "0.1.0"
-description = "Subtitle builder using faster-whisper and stable-ts"
+description = "Subtitle builder server using faster-whisper and stable-ts"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -10,10 +10,15 @@ dependencies = [
     "transformers",
     "optimum",
     "accelerate",
-    "litserve",
     "aioboto3",
     "aiofiles",
+    "litserve"
 ]
 
 [tool.uv]
-managed = true
+managed = false
+package = false
+
+[tool.uv.pip]
+system = true
+

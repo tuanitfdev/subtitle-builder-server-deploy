@@ -2,3 +2,4 @@ compose.yml
 .git
 output.json
 outputPlainText.txt
+.env*

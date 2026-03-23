@@ -29,15 +29,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install flash-attn --no-build-isolation --no-cache-dir
 
+RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
+
+RUN curl -fLo /root/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
+    git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm && \
+    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh && \
+    git clone https://github.com/lincheney/fzf-tab-completion.git ~/fzf-tab-completion && \
+    cp /root/.bashrc /root/.bashrc.bk
+
+COPY .vimrc .tmux.conf .bashrc /root/
+
+RUN vim +PlugInstall +qall && \
+    /root/.tmux/plugins/tpm/bin/install_plugins
+
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY pyproject.toml .
 # Sử dụng uv sync để đồng bộ hóa dependencies từ pyproject.toml
 # --no-dev: Không cài các gói development
 # --no-install-project: Không cài đặt chính dự án hiện tại ở chế độ editable (chỉ cài dependencies)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-dev --no-install-project
+    uv pip install .
+    # uv sync --no-dev --no-install-project
 
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-CMD ["uv", "run", "python", "src/mainServer.py"]
+# CMD ["uv", "run", "--system", "python", "src/mainServer.py"]
+
