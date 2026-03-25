@@ -44,15 +44,11 @@ RUN vim +PlugInstall +qall && \
 
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY pyproject.toml .
-# Sử dụng uv sync để đồng bộ hóa dependencies từ pyproject.toml
-# --no-dev: Không cài các gói development
-# --no-install-project: Không cài đặt chính dự án hiện tại ở chế độ editable (chỉ cài dependencies)
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install .
-    # uv sync --no-dev --no-install-project
 
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-# CMD ["uv", "run", "--system", "python", "src/mainServer.py"]
+CMD ["python", "src/mainServer.py"]
 

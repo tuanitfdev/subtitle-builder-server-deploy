@@ -1,5 +1,7 @@
 compose.yml
 .git
-output.json
-outputPlainText.txt
 .env*
+data
+data/stor/*
+!data/stor/sample
+build

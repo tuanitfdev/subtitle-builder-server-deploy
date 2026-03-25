@@ -1,10 +1,13 @@
 import litserve as ls
-import torch
-import stable_whisper as whisper
-from transformers.utils import is_flash_attn_2_available
+# import torch
+# import stable_whisper as whisper
+# from transformers.utils import is_flash_attn_2_available
 from r2_manager import R2Manager
 import os
 
+# load dotenv
+from dotenv import load_dotenv
+load_dotenv()
 
 class SubtitleBuilderAPI(ls.LitAPI):
     def setup(self, device):
@@ -37,11 +40,11 @@ class SubtitleBuilderAPI(ls.LitAPI):
             
         return {
             "audio_path": temp_file,
-            "language": request.get("language"),
+            "language": request.get("language", "None"),
             "task": request.get("task", "transcribe")
         }
 
-    def predict(self, x):
+    async def predict(self, x):
         """
         Xử lý inference đồng bộ (Sync) trên GPU để tối ưu hiệu năng
         """
@@ -66,7 +69,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
         except Exception as e:
             return {"error": str(e), "audio_path": audio_path}
 
-    def encode_response(self, output):
+    async def encode_response(self, output):
         """
         Trả về kết quả và dọn dẹp file tạm
         """
@@ -97,7 +100,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
         return {"status": "success", "data": output["result"]}
 
 if __name__ == "__main__":
-    api = SubtitleBuilderAPI()
+    api = SubtitleBuilderAPI(enable_async=True)
     
     # Cấu hình server
     server = ls.LitServer(
@@ -108,4 +111,4 @@ if __name__ == "__main__":
         timeout=600           # Tăng timeout cho audio dài
     )
     
-    server.run(port=8000)
+    server.run(port=8000, generate_client_file=False)

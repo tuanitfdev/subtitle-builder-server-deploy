@@ -12,13 +12,17 @@ dependencies = [
     "accelerate",
     "aioboto3",
     "aiofiles",
-    "litserve"
+    "litserve",
+    "dotenv"
 ]
 
 [tool.uv]
-managed = false
-package = false
+managed = true
+package = true
 
-[tool.uv.pip]
-system = true
+# ko dung system = true de chay cli linh hoat
+# khi dev project code va khi chay trong docker container
+#[tool.uv.pip]
+#system = true
+
 

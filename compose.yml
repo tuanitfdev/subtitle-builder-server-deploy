@@ -13,9 +13,14 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    ports:
+      - "8000:8000"
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:
       - .:/app
+    # Sử dụng file .env cho biến môi trường
+    env_file:
+      - .env
     # Giữ container chạy ngầm (tương đương -it)
     stdin_open: true
     tty: true

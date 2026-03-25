@@ -4,3 +4,4 @@ data/stor/*
 __pycache__
 *.egg-info
 build
+.venv
