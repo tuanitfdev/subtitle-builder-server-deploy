@@ -1,7 +1,7 @@
 import litserve as ls
-# import torch
-# import stable_whisper as whisper
-# from transformers.utils import is_flash_attn_2_available
+import torch
+import stable_whisper as whisper
+from transformers.utils import is_flash_attn_2_available
 from r2_manager import R2Manager
 import os
 
@@ -15,12 +15,12 @@ class SubtitleBuilderAPI(ls.LitAPI):
         print(f"Loading Whisper model on {device}...")
         # Load model stable-whisper (faster-whisper backend)
         # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
-        # self.model = whisper.load_faster_whisper(
-        #     "large-v3-turbo", 
-        #     device=self.device, 
-        #     compute_type="float16"
-        # )
-        print("da mock load faster whisper")
+        self.model = whisper.load_faster_whisper(
+            "large-v3-turbo", 
+            device=self.device, 
+            compute_type="float16"
+        )
+        # print("da mock load faster whisper")
         self.r2_manager = R2Manager.get_instance()
 
     async def decode_request(self, request):
@@ -55,15 +55,15 @@ class SubtitleBuilderAPI(ls.LitAPI):
         audio_filename = os.path.basename(audio_path)
         try:
             print(f"Transcribing {audio_path}...")
-            # result = self.model.transcribe(
-            #     audio_path,
-            #     language=x.get("language"),
-            #     task=x.get("task"),
-            #     vad=True,
-            #     word_timestamps=True,
-            #     batch_size=24
-            # )
-            result = "da transcribe thanh cong"
+            result = self.model.transcribe(
+                audio_path,
+                language=x.get("language"),
+                task=x.get("task"),
+                vad=True,
+                word_timestamps=True,
+                batch_size=24
+            )
+            # result = "da transcribe thanh cong"
             return {"result": result,
               "audio_filename": audio_filename}
         except Exception as e:
@@ -77,22 +77,22 @@ class SubtitleBuilderAPI(ls.LitAPI):
         audio_filename = output.get("audio_filename")
         audio_filename0Ext = audio_filename.split(".")[0]
         rawResult = output.get("result")
-        print("da xu ly rawResult")
-        # rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
+        rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
+        # print("da xu ly rawResult")
         # Dọn dẹp file tạm sau khi đã xử lý xong
         # tao file mocked srt
-        with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
-            f.write("test")
-        print("da tao file mocked srt")
+        # with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
+        #     f.write("test")
+        # print("da tao file mocked srt")
         result = {
             "subtitleFileKey": f"{audio_filename0Ext}.srt",
             "audioFileKey": audio_filename,
             "msg": "Subtitle generated successfully"
         }
-        # audio_path = f"data/stor/{audio_filename}"
-        # if audio_path and os.path.exists(audio_path):
-        #     os.remove(audio_path)
-        #     print(f"Removed temp file: {audio_path}")
+        audio_path = f"data/stor/{audio_filename}"
+        if audio_path and os.path.exists(audio_path):
+            os.remove(audio_path)
+            print(f"Removed temp file: {audio_path}")
             
         if "error" in output:
             return {"status": "error", "message": output["error"]}
