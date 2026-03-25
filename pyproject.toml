@@ -5,11 +5,11 @@ description = "Subtitle builder server using faster-whisper and stable-ts"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "stable-ts",
-    "faster-whisper",
-    "transformers",
-    "optimum",
-    "accelerate",
+    # "stable-ts",
+    # "faster-whisper",
+    # "transformers",
+    # "optimum",
+    # "accelerate",
     "aioboto3",
     "aiofiles",
     "litserve",
@@ -18,7 +18,7 @@ dependencies = [
 
 [tool.uv]
 managed = true
-package = true
+package = false
 
 # ko dung system = true de chay cli linh hoat
 # khi dev project code va khi chay trong docker container
