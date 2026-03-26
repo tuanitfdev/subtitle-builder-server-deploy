@@ -12,14 +12,14 @@ class R2Manager:
     _instance: Optional['R2Manager'] = None
 
     def __init__(self):
-        # Tránh khởi tạo nhiều lần nếu dùng get_instance
+        # Avoid multiple initializations when using get_instance
         self._session = aioboto3.Session()
         self._bucket_name = os.getenv("R2_BUCKET_NAME")
         self._endpoint_url = os.getenv("R2_ENDPOINT_URL")
         self._access_key_id = os.getenv("R2_ACCESS_KEY_ID")
         self._secret_access_key = os.getenv("R2_SECRET_ACCESS_KEY")
         
-        # Cấu hình R2 chuyên dụng
+        # Dedicated R2 configuration
         self._config = Config(
             s3={'addressing_style': 'virtual'},
             retries={'max_attempts': 3, 'mode': 'standard'}
@@ -32,7 +32,7 @@ class R2Manager:
         return cls._instance
 
     def _get_client(self):
-        """Tạo context manager cho client"""
+        """Create context manager for client"""
         return self._session.client(
             service_name="s3",
             endpoint_url=self._endpoint_url,
@@ -45,46 +45,46 @@ class R2Manager:
     async def upload_file(self, file_path: str, object_key: Optional[str] = None):
         path = Path(file_path)
         if not path.exists():
-            print(f"File không tồn tại: {file_path}")
+            print(f"File does not exist: {file_path}")
             return False
 
         file_key = object_key or path.name
         
-        # Dùng 'async with' để tự động đóng client sau khi xong
+        # Use 'async with' to automatically close client when done
         async with self._get_client() as r2:
             try:
-                # Đọc file một cách non-blocking (nếu file cực lớn nên dùng aiofiles)
+                # Read file in a non-blocking way (for very large files consider using aiofiles)
                 with open(file_path, "rb") as f:
                     await r2.put_object(
                         Bucket=self._bucket_name, 
                         Key=file_key, 
                         Body=f
                     )
-                print(f"Đã upload: {file_key}")
+                print(f"Uploaded: {file_key}")
                 return True
             except Exception as e:
-                print(f"Upload lỗi: {e}")
+                print(f"Upload error: {e}")
                 return False
 
     async def check_file_exists(self, file_key: str) -> bool:
         """
-        Kiểm tra file có tồn tại trên R2 hay không bằng head_object.
-        Trả về True nếu tồn tại, False nếu không.
+        Check if a file exists on R2 using head_object.
+        Returns True if it exists, False otherwise.
         """
         async with self._get_client() as r2:
             try:
-                # head_object chỉ lấy thông tin đầu ngữ, không tải data
+                # head_object only fetches metadata, does not download data
                 await r2.head_object(Bucket=self._bucket_name, Key=file_key)
                 return True
             except r2.exceptions.ClientError as e:
-                # Nếu mã lỗi là 404, chắc chắn file không tồn tại
+                # If error code is 404, the file definitely does not exist
                 if e.response['Error']['Code'] == "NoSuchKey":
-                    print(f"File '{file_key}' không tìm thấy trên R2.")
+                    print(f"File '{file_key}' not found on R2.")
                 else:
-                    print(f"Lỗi khi check file: {e}")
+                    print(f"Error checking file: {e}")
                 return False
             except Exception as e:
-                print(f"Lỗi không xác định khi check file: {e}")
+                print(f"Unknown error checking file: {e}")
                 return False
 
     async def download_file(self, file_key: str, destination_path: Optional[str] = None):
@@ -95,38 +95,38 @@ class R2Manager:
             try:
                 response = await r2.get_object(Bucket=self._bucket_name, Key=file_key)
                 
-                # Mở file để ghi binary
+                # Open file for binary writing
                 with open(dest_path, "wb") as f:
                     stream = response["Body"]
-                    # Tải và ghi từng block 1MB một
+                    # Download and write in 1MB chunks
                     while chunk := await stream.read(1024 * 1024):
                         f.write(chunk)
                         
-                print(f"Đã tải xong: {dest_path}")
+                print(f"Download complete: {dest_path}")
                 return str(dest_path)
             except r2.exceptions.ClientError as e:
-                # Nếu mã lỗi là 404, chắc chắn file không tồn tại
+                # If error code is 404, the file definitely does not exist
                 if e.response['Error']['Code'] == "NoSuchKey":
-                    print(f"File '{file_key}' không tìm thấy trên R2.")
+                    print(f"File '{file_key}' not found on R2.")
                 else:
-                    print(f"Lỗi khi check file: {e}")
+                    print(f"Error checking file: {e}")
                     print(f"pprint(e.response):")
                     pprint(e.response)
                     # print(f"pprint(e.__dict__):")
                     # pprint(e.__dict__)
                 return None
             except Exception as e:
-                print(f"Download lỗi: {e}")
+                print(f"Download error: {e}")
                 return None
 
     async def delete_file(self, file_key: str) -> bool:
         async with self._get_client() as r2:
             try:
                 await r2.delete_object(Bucket=self._bucket_name, Key=file_key)
-                print(f"Đã xóa: {file_key}")
+                print(f"Deleted: {file_key}")
                 return True
             except Exception as e:
-                print(f"Xóa lỗi: {e}")
+                print(f"Delete error: {e}")
                 return False
 
     async def list_files(self) -> List[dict]:
@@ -135,5 +135,5 @@ class R2Manager:
                 response = await r2.list_objects_v2(Bucket=self._bucket_name)
                 return response.get('Contents', [])
             except Exception as e:
-                print(f"Lỗi list file: {e}")
+                print(f"List files error: {e}")
                 return []

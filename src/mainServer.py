@@ -17,7 +17,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
         try:
             print(f"Loading Whisper model on {device}...")
             # Load model stable-whisper (faster-whisper backend)
-            # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
+            # Optimized for GPU with float16 and Flash Attention 2 if available
             self.model = whisper.load_faster_whisper(
                 "large-v3-turbo", 
                 device="cuda", 
@@ -36,16 +36,16 @@ class SubtitleBuilderAPI(ls.LitAPI):
 
     async def decode_request(self, request):
         """
-        Xử lý request async: Tải file từ R2/S3 về local tạm thời
+        Handle async request: Download file from R2/S3 to local temp storage
         """
-        file_key = request.get("file_key") # Key của file trên R2
+        file_key = request.get("file_key") # Key of the file on R2
         if not file_key:
             MyLogger.log_error("Missing 'file_key' in request", payload={
                 "request": request
             })
             raise HTTPException(status_code=400, detail="Missing 'file_key' in request")
 
-        # Tạo path tạm để lưu audio
+        # Create temp path to store audio
         audio_path = f"data/stor/{os.path.basename(file_key)}"
         
         print(f"Downloading {file_key} from R2 to {audio_path}...")
@@ -67,7 +67,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
 
     async def predict(self, x):
         """
-        Xử lý inference đồng bộ (Sync) trên GPU để tối ưu hiệu năng
+        Handle synchronous inference on GPU for optimal performance
         """
         audio_path = x.get("audio_path")
         audio_filename = x.get("audio_filename")
@@ -97,25 +97,43 @@ class SubtitleBuilderAPI(ls.LitAPI):
 
     async def encode_response(self, output):
         """
-        Trả về kết quả và dọn dẹp file tạm
+        Return result and clean up temp files
         """
         try:
             audio_filename = output.get("audio_filename")
             audio_filename0Ext = audio_filename.split(".")[0]
+            srt_path = f"data/stor/{audio_filename0Ext}.srt"
             rawResult = output.get("result")
             try:
-                rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
+                rawResult.to_srt_vtt(srt_path, segment_level=True, word_level=False)
+
+                if srt_path and os.path.exists(srt_path):
+                    # Upload SRT file to R2
+                    srt_key = f"{audio_filename0Ext}.srt"
+                    await self.r2_manager.upload_file(srt_path, srt_key)
+                    print(f"Uploaded SRT to R2 with key: {srt_key}")
+                else:
+                    msg = f"SRT file not found after transcription: {srt_path}"
+                    payload = {
+                        "audio_filename": audio_filename,
+                        "srt_path": srt_path
+                    }
+                    MyLogger.log_error(msg, payload=payload)
+                    raise MyException(msg, payload=payload)
             except Exception as e:
                 MyLogger.log_error(f"Failed to save SRT file: {str(e)}", payload={
                     "audio_filename": audio_filename,
+                    "srt_path": srt_path,
                     "exception": traceback.format_exc()  # full stack trace as string
                 })
-            # print("da xu ly rawResult")
-            # Dọn dẹp file tạm sau khi đã xử lý xong
-            # tao file mocked srt
+                raise
+            
+            # print("rawResult processed")
+            # Clean up temp files after processing
+            # create mocked srt file
             # with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
             #     f.write("test")
-            # print("da tao file mocked srt")
+            # print("mocked srt file created")
             result = {
                 "subtitleFileKey": f"{audio_filename0Ext}.srt",
                 "audioFileKey": audio_filename,
@@ -137,12 +155,12 @@ class SubtitleBuilderAPI(ls.LitAPI):
 if __name__ == "__main__":
     api = SubtitleBuilderAPI(enable_async=True)
     
-    # Cấu hình server
+    # Server configuration
     server = ls.LitServer(
         api, 
         accelerator="auto", 
         devices=1, 
-        workers_per_device=1, # Quan trọng: Giới hạn 1 worker để tránh OOM GPU
+        workers_per_device=1, # Important: Limit to 1 worker to avoid GPU OOM
         timeout=600           # Tăng timeout cho audio dài
     )
     
