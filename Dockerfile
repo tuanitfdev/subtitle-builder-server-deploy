@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Cài đặt flash-attn với mount cache và --no-build-isolation
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install flash-attn --no-build-isolation --no-cache-dir
+    uv pip install flash-attn supervisor --no-build-isolation --no-cache-dir
 
 RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
 
@@ -47,5 +47,5 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-CMD ["python", "src/mainServer.py"]
+CMD ["supervisord", "-c", "/app/supervisord.conf"]
 

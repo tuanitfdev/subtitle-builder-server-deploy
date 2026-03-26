@@ -4,8 +4,10 @@ import stable_whisper as whisper
 from transformers.utils import is_flash_attn_2_available
 from fastapi import HTTPException
 from my_exception import MyException
+from my_logger import MyLogger
 from r2_manager import R2Manager
 import os
+import traceback
 
 
 # load dotenv

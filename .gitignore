@@ -1,5 +1,7 @@
+data
 data/stor/*
 !data/stor/sample
+data/log/*
 .env
 __pycache__
 *.egg-info
