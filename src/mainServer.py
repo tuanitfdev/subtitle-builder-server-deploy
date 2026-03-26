@@ -2,8 +2,11 @@ import litserve as ls
 import torch
 import stable_whisper as whisper
 from transformers.utils import is_flash_attn_2_available
+from fastapi import HTTPException
+from my_exception import MyException
 from r2_manager import R2Manager
 import os
+
 
 # load dotenv
 from dotenv import load_dotenv
@@ -11,17 +14,25 @@ load_dotenv()
 
 class SubtitleBuilderAPI(ls.LitAPI):
     def setup(self, device):
-        self.device = device
-        print(f"Loading Whisper model on {device}...")
-        # Load model stable-whisper (faster-whisper backend)
-        # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
-        self.model = whisper.load_faster_whisper(
-            "large-v3-turbo", 
-            device=self.device, 
-            compute_type="float16"
-        )
-        # print("da mock load faster whisper")
-        self.r2_manager = R2Manager.get_instance()
+        try:
+            print(f"Loading Whisper model on {device}...")
+            # Load model stable-whisper (faster-whisper backend)
+            # Tối ưu cho GPU với float16 và Flash Attention 2 nếu có
+            self.model = whisper.load_faster_whisper(
+                "large-v3-turbo", 
+                device="cuda", 
+                compute_type="float16",
+                device_index=[0]
+            )
+            # print("da mock load faster whisper")
+            self.r2_manager = R2Manager.get_instance()
+        
+        except Exception as e:
+            MyLogger.log_error(f"Failed to load model or initialize R2Manager: {str(e)}", payload={
+                "device": device,
+                "exception": traceback.format_exc()  # full stack trace as string
+            })
+            raise
 
     async def decode_request(self, request):
         """
@@ -29,17 +40,27 @@ class SubtitleBuilderAPI(ls.LitAPI):
         """
         file_key = request.get("file_key") # Key của file trên R2
         if not file_key:
-            return {"error": "Missing file_key"}
+            MyLogger.log_error("Missing 'file_key' in request", payload={
+                "request": request
+            })
+            raise HTTPException(status_code=400, detail="Missing 'file_key' in request")
 
         # Tạo path tạm để lưu audio
-        temp_file = f"data/stor/{os.path.basename(file_key)}"
+        audio_path = f"data/stor/{os.path.basename(file_key)}"
         
-        print(f"Downloading {file_key} from R2 to {temp_file}...")
+        print(f"Downloading {file_key} from R2 to {audio_path}...")
         
-        await self.r2_manager.download_file(file_key, temp_file)
-            
+        try:
+            res = await self.r2_manager.download_file(file_key, audio_path)
+        except Exception as e:
+            MyLogger.log_error(f"Failed to download file from R2: {str(e)}", payload={
+                "file_key": file_key,
+                "exception": traceback.format_exc()  # full stack trace as string
+            })
+            raise HTTPException(status_code=500, detail="Internal Server Error")
         return {
-            "audio_path": temp_file,
+            "audio_path": audio_path,
+            "audio_filename": file_key,
             "language": request.get("language", "None"),
             "task": request.get("task", "transcribe")
         }
@@ -48,11 +69,8 @@ class SubtitleBuilderAPI(ls.LitAPI):
         """
         Xử lý inference đồng bộ (Sync) trên GPU để tối ưu hiệu năng
         """
-        if "error" in x:
-            return x
-            
-        audio_path = x["audio_path"]
-        audio_filename = os.path.basename(audio_path)
+        audio_path = x.get("audio_path")
+        audio_filename = x.get("audio_filename")
         try:
             print(f"Transcribing {audio_path}...")
             result = self.model.transcribe(
@@ -64,40 +82,57 @@ class SubtitleBuilderAPI(ls.LitAPI):
                 batch_size=24
             )
             # result = "da transcribe thanh cong"
-            return {"result": result,
-              "audio_filename": audio_filename}
+            return {
+                "result": result,
+                "audio_filename": audio_filename,
+                "audio_path": audio_path
+            }
         except Exception as e:
-            return {"error": str(e), "audio_path": audio_path}
+            MyLogger.log_error(f"Transcription failed: {str(e)}", payload={
+                "audio_path": audio_path,
+                "audio_filename": audio_filename,
+                "exception": traceback.format_exc()  # full stack trace as string
+            })
+            raise HTTPException(status_code=500, detail="Transcription failed")
 
     async def encode_response(self, output):
         """
         Trả về kết quả và dọn dẹp file tạm
         """
-
-        audio_filename = output.get("audio_filename")
-        audio_filename0Ext = audio_filename.split(".")[0]
-        rawResult = output.get("result")
-        rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
-        # print("da xu ly rawResult")
-        # Dọn dẹp file tạm sau khi đã xử lý xong
-        # tao file mocked srt
-        # with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
-        #     f.write("test")
-        # print("da tao file mocked srt")
-        result = {
-            "subtitleFileKey": f"{audio_filename0Ext}.srt",
-            "audioFileKey": audio_filename,
-            "msg": "Subtitle generated successfully"
-        }
-        audio_path = f"data/stor/{audio_filename}"
-        if audio_path and os.path.exists(audio_path):
-            os.remove(audio_path)
-            print(f"Removed temp file: {audio_path}")
-            
-        if "error" in output:
-            return {"status": "error", "message": output["error"]}
-            
-        return {"status": "success", "data": output["result"]}
+        try:
+            audio_filename = output.get("audio_filename")
+            audio_filename0Ext = audio_filename.split(".")[0]
+            rawResult = output.get("result")
+            try:
+                rawResult.to_srt_vtt(f"data/stor/{audio_filename0Ext}.srt", segment_level=True, word_level=False)
+            except Exception as e:
+                MyLogger.log_error(f"Failed to save SRT file: {str(e)}", payload={
+                    "audio_filename": audio_filename,
+                    "exception": traceback.format_exc()  # full stack trace as string
+                })
+            # print("da xu ly rawResult")
+            # Dọn dẹp file tạm sau khi đã xử lý xong
+            # tao file mocked srt
+            # with open(f"data/stor/{audio_filename0Ext}.srt", "w") as f:
+            #     f.write("test")
+            # print("da tao file mocked srt")
+            result = {
+                "subtitleFileKey": f"{audio_filename0Ext}.srt",
+                "audioFileKey": audio_filename,
+                "msg": f"Subtitle {audio_filename0Ext}.srt generated successfully"
+            }
+            audio_path = f"data/stor/{audio_filename}"
+            if audio_path and os.path.exists(audio_path):
+                os.remove(audio_path)
+                print(f"Removed temp file: {audio_path}")
+                
+            return {"status": "success", "data": result}
+        except Exception as e:
+            MyLogger.log_error(f"Failed to encode response: {str(e)}", payload={
+                "audio_filename": output.get("audio_filename"),
+                "exception": traceback.format_exc()  # full stack trace as string
+            })
+            raise HTTPException(status_code=500, detail="Failed to encode response or clean up")
 
 if __name__ == "__main__":
     api = SubtitleBuilderAPI(enable_async=True)
