@@ -47,5 +47,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-CMD ["supervisord", "-c", "/app/supervisord.conf"]
+COPY supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
+
+CMD ["supervisord"]
 
