@@ -1,6 +1,3 @@
-# syntax=docker/dockerfile:1
-# Single Stage Dockerfile for debugging runtime issues
-
 # lightning.ai studio installed image
 FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
 
