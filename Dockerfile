@@ -39,6 +39,9 @@ COPY .vimrc .tmux.conf .bashrc /root/
 RUN vim +PlugInstall +qall && \
     /root/.tmux/plugins/tpm/bin/install_plugins
 
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -47,7 +50,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY . .
 
-COPY supervisord.conf  /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf  /etc/supervisor/supervisord.conf
+
+ENTRYPOINT ["entrypoint.sh"]
 
 CMD ["supervisord"]
+# with default config at /etc/supervisor/supervisord.conf 
 

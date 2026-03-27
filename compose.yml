@@ -25,4 +25,4 @@ services:
     stdin_open: true
     tty: true
     # Lệnh mặc định khi start
-    command: /bin/bash
+    # command: /bin/bash
