@@ -54,6 +54,6 @@ COPY supervisord.conf  /etc/supervisor/supervisord.conf
 
 ENTRYPOINT ["entrypoint.sh"]
 
-CMD ["supervisord"]
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 # with default config at /etc/supervisor/supervisord.conf 
 
