@@ -4,4 +4,6 @@ compose.yml
 data
 data/stor/*
 !data/stor/sample
+data/log/*
+!data/log/.gitignore
 build
