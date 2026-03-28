@@ -1,6 +1,6 @@
 services:
   subtitle-builder-server:
-    image: subtitle-builder-server:dev-iso-latest
+    image: subtitle-builder-server:iso-vastai-pytorch-latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -16,8 +16,8 @@ services:
     ports:
       - "8000:8000"
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
-    # volumes:
-    #   - .:/app
+    volumes:
+      - .:/opt/ws
     # Sử dụng file .env cho biến môi trường
     env_file:
       - .env

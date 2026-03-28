@@ -57,6 +57,7 @@ COPY app .
 
 COPY supervisor/app.conf  /etc/supervisor/conf.d/
 COPY supervisor/app.sh /opt/supervisor-scripts/
+RUN chmod +x /opt/supervisor-scripts/app.sh
 
 ENTRYPOINT ["entrypoint.sh"]
 

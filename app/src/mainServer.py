@@ -21,7 +21,8 @@ class SubtitleBuilderAPI(ls.LitAPI):
             # Load model stable-whisper (faster-whisper backend)
             # Optimized for GPU with float16 and Flash Attention 2 if available
             self.model = whisper.load_faster_whisper(
-                "large-v3-turbo", 
+                "deepdml/faster-whisper-large-v3-turbo-ct2", 
+                # "large-v3", 
                 device="cuda", 
                 compute_type="float16",
                 device_index=[0],

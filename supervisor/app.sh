@@ -1,9 +1,9 @@
 #!/bin/bash
+# export PYTHONUNBUFFERED=1
 mkdir -p /models
 
-mkdir -p /opt/app/data/log
+mkdir -p /opt/ws/app/data/log
 
-rm -f /opt/app/data/log/*.log
-
-cd /opt/app
-exec python src/mainServer.py
+cd /opt/ws/app
+#exec python src/mainServer.py
+exec /venv/main/bin/python -u src/mainServer.py

@@ -4,8 +4,10 @@
 
 mkdir -p /models
 
-mkdir -p /opt/app/data/log
+mkdir -p /opt/ws/app/data/log
 
-rm -f /opt/app/data/log/*.log
 
+rm -f /opt/ws/app/data/log/*.log
+
+touch /opt/ws/app/data/log/app.stdout.log
 exec "$@"
