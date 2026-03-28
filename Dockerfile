@@ -11,7 +11,7 @@ ENV UV_CACHE_DIR=/root/.cache/uv
 # Sử dụng chế độ copy thay vì hardlink để tương thích tốt nhất với Docker mount cache
 ENV UV_LINK_MODE=copy
 
-WORKDIR /opt/app
+WORKDIR /opt/ws/app
 
 # Cài đặt uv từ image chính thức
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
