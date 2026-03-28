@@ -1,5 +1,10 @@
+data/*
+!data/stor
+!data/log
 data/stor/*
 !data/stor/sample
+data/log/*
+!data/log/.gitignore
 .env
 __pycache__
 *.egg-info
