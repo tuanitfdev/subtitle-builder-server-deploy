@@ -10,7 +10,7 @@ ENV UV_CACHE_DIR=/root/.cache/uv
 # Sử dụng chế độ copy thay vì hardlink để tương thích tốt nhất với Docker mount cache
 ENV UV_LINK_MODE=copy
 
-WORKDIR /app
+WORKDIR /ws
 
 # Cài đặt uv từ image chính thức
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -42,6 +42,10 @@ RUN vim +PlugInstall +qall && \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+COPY supervisord.conf  /etc/supervisor/supervisord.conf
+
+WORKDIR /ws/app
+
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY pyproject.toml .
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -49,8 +53,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy toàn bộ code vào sau cùng
 COPY . .
-
-COPY supervisord.conf  /etc/supervisor/supervisord.conf
 
 ENTRYPOINT ["entrypoint.sh"]
 
