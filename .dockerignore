@@ -9,3 +9,4 @@ app/data/stor/*
 app/data/log/*
 !app/data/log/.gitignore
 build
+.venv

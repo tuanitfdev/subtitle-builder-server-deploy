@@ -1,5 +1,6 @@
 # lightning.ai studio installed image
-FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
+# FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
+FROM vastai/pytorch:2.9.0-cuda-12.8.1-py312-24.04
 
 # Thiết lập biến môi trường để tránh các câu hỏi tương tác
 ENV DEBIAN_FRONTEND=noninteractive
@@ -10,10 +11,13 @@ ENV UV_CACHE_DIR=/root/.cache/uv
 # Sử dụng chế độ copy thay vì hardlink để tương thích tốt nhất với Docker mount cache
 ENV UV_LINK_MODE=copy
 
-WORKDIR /ws
+WORKDIR /opt/app
 
 # Cài đặt uv từ image chính thức
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV VIRTUAL_ENV=/venv/main
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Cài đặt các công cụ cần thiết để biên dịch và chạy
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -22,9 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt flash-attn với mount cache và --no-build-isolation
+# Cài đặt flash-attn từ pre-built wheel và supervisor
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install flash-attn supervisor --no-build-isolation --no-cache-dir
+    uv pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl supervisor
 
 RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
 
@@ -42,21 +46,20 @@ RUN vim +PlugInstall +qall && \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY supervisord.conf  /etc/supervisor/supervisord.conf
-
 
 # Cài đặt các dependencies từ pyproject.toml với mount cache
-COPY app/pyproject.toml /ws/app/pyproject.toml
-WORKDIR /ws/app
+COPY app/pyproject.toml pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install .
-WORKDIR /ws
 
 # Copy toàn bộ code vào sau cùng
-COPY app /ws/app
+COPY app .
+
+COPY supervisor/app.conf  /etc/supervisor/conf.d/
+COPY supervisor/app.sh /opt/supervisor-scripts/
 
 ENTRYPOINT ["entrypoint.sh"]
 
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+# CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 # with default config at /etc/supervisor/supervisord.conf 
 

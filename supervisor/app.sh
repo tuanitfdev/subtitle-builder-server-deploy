@@ -1,11 +1,9 @@
 #!/bin/bash
-# Dừng script ngay nếu có lỗi xảy ra
-#set -e
-
 mkdir -p /models
 
 mkdir -p /opt/app/data/log
 
 rm -f /opt/app/data/log/*.log
 
-exec "$@"
+cd /opt/app
+exec python src/mainServer.py
