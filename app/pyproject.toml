@@ -1,0 +1,23 @@
+[project]
+name = "subtitle-builder-server-core"
+version = "0.1.0"
+description = "Subtitle builder server core using faster-whisper and stable-ts"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "stable-ts",
+    "faster-whisper",
+    "transformers",
+    "optimum",
+    "accelerate",
+    "aioboto3",
+    "aiofiles",
+    "litserve",
+    "dotenv"
+]
+
+[tool.uv]
+managed = true
+package = false
+
+
