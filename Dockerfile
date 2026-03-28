@@ -44,15 +44,16 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY supervisord.conf  /etc/supervisor/supervisord.conf
 
-WORKDIR /ws/app
 
 # Cài đặt các dependencies từ pyproject.toml với mount cache
-COPY pyproject.toml .
+COPY app/pyproject.toml /ws/app/pyproject.toml
+WORKDIR /ws/app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install .
+WORKDIR /ws
 
 # Copy toàn bộ code vào sau cùng
-COPY . .
+COPY app /ws/app
 
 ENTRYPOINT ["entrypoint.sh"]
 

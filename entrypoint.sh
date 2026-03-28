@@ -2,8 +2,8 @@
 # Dừng script ngay nếu có lỗi xảy ra
 set -e
 
-mkdir -p /app/data/log
+mkdir -p /ws/app/data/log
 
-rm -f /app/data/log/*.log
+rm -f /ws/app/data/log/*.log
 
 exec "$@"

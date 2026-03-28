@@ -1,9 +1,11 @@
 compose.yml
 .git
 .env*
-data
-data/stor/*
-!data/stor/sample
-data/log/*
-!data/log/.gitignore
+app/data/*
+!app/data/stor
+!app/data/log
+app/data/stor/*
+!app/data/stor/sample
+app/data/log/*
+!app/data/log/.gitignore
 build
