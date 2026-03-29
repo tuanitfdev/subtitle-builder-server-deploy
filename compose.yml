@@ -1,6 +1,6 @@
 services:
   subtitle-builder-server:
-    image: subtitle-builder-server:iso-vastai-pytorch-latest
+    image: tuanitfdev/subtitle-builder-server:${APP_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile

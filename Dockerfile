@@ -1,6 +1,6 @@
 # lightning.ai studio installed image
 # FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
-FROM vastai/pytorch:2.9.0-cuda-12.8.1-py312-24.04
+FROM vastai/pytorch:2.8.0-cu128-cuda-12.9-mini-py312-2026-03-26
 
 # Thiết lập biến môi trường để tránh các câu hỏi tương tác
 ENV DEBIAN_FRONTEND=noninteractive
@@ -26,9 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt flash-attn từ pre-built wheel và supervisor
+# Cài đặt flash-attn từ pre-built wheel
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl supervisor
+    uv pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
 
