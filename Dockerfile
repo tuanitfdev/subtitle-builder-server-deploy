@@ -1,4 +1,5 @@
-# lightning.ai studio installed image
+FROM ghcr.io/tuanitfdev/whisper-model-hub-deploy:latest as model-hub
+
 # FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
 FROM vastai/pytorch:2.8.0-cu128-cuda-12.9-mini-py312-2026-03-26
 
@@ -42,6 +43,8 @@ COPY .vimrc .tmux.conf .bashrc /root/
 
 RUN vim +PlugInstall +qall && \
     /root/.tmux/plugins/tpm/bin/install_plugins
+
+COPY --from=model-hub /models /models
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

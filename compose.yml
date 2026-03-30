@@ -1,6 +1,6 @@
 services:
   subtitle-builder-server:
-    image: tuanitfdev/subtitle-builder-server:${APP_TAG:-latest}
+    image: ghcr.io/tuanitfdev/subtitle-builder-server-deploy:${APP_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile
