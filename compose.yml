@@ -19,8 +19,8 @@ services:
     volumes:
       - .:/opt/ws
     # Sử dụng file .env cho biến môi trường
-    env_file:
-      - .env
+    #env_file:
+    #  - .env
     # Giữ container chạy ngầm (tương đương -it)
     stdin_open: true
     tty: true
