@@ -1,5 +1,7 @@
 FROM ghcr.io/tuanitfdev/whisper-model-hub-deploy:latest as model-hub
 
+tuanitfdev/whisper-model-hub-deploy
+
 # FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
 FROM vastai/pytorch:2.8.0-cu128-cuda-12.9-mini-py312-2026-03-26
 
@@ -33,22 +35,16 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
 
-RUN curl -fLo /root/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim && \
-    git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm && \
-    curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh && \
-    git clone https://github.com/lincheney/fzf-tab-completion.git ~/fzf-tab-completion && \
-    cp /root/.bashrc /root/.bashrc.bk
-
-COPY .vimrc .tmux.conf .bashrc /root/
-
-RUN vim +PlugInstall +qall && \
-    /root/.tmux/plugins/tpm/bin/install_plugins
+RUN git clone https://github.com/tuanitfdev/myShellEnv.git ~/myShellEnv && \
+    cd ~/myShellEnv/src && \
+    chmod +x setupBashTmuxFzfNo_ZoxideFromUbuntu.sh && \
+    ./setupBashTmuxFzfNo_ZoxideFromUbuntu.sh && \
+    rm -rf ~/myShellEnv
 
 COPY --from=model-hub /models /models
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
 
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY app/pyproject.toml pyproject.toml
