@@ -4,6 +4,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # cache_from:
+      #   - type=gha
+      # cache_to:
+      #   - type=gha,mode=max
     container_name: subtitle_builder_server_container
     # Cấu hình quan trọng nhất để nhận diện GPU NVIDIA
     # deploy:
@@ -19,8 +23,8 @@ services:
     volumes:
       - .:/opt/ws
     # Sử dụng file .env cho biến môi trường
-    env_file:
-      - .env
+    #env_file:
+    #  - .env
     # Giữ container chạy ngầm (tương đương -it)
     stdin_open: true
     tty: true
