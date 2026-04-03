@@ -26,7 +26,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
                 device="cuda", 
                 compute_type="float16",
                 device_index=[0],
-                download_root="/models",
+                download_root="/data/models",
             )
             # print("da mock load faster whisper")
             self.r2_manager = R2Manager.get_instance()

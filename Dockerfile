@@ -29,9 +29,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+COPY --from=model-hub /data/models /data/models
+COPY --from=model-hub /data/cacheTorchHub /root/.cache/torch/hub
+COPY --from=model-hub /data/whl /data/whl
+
 # Cài đặt flash-attn từ pre-built wheel
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+    uv pip install /data/whl/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl && rm -rf /data/whl
 
 RUN apt-get update && apt-get install -y curl vim-gtk3 tmux xsel htop net-tools iputils-ping
 
@@ -40,8 +44,6 @@ RUN git clone https://github.com/tuanitfdev/myShellEnv.git ~/myShellEnv && \
     chmod +x setupBashTmuxFzfNo_ZoxideFromUbuntu.sh && \
     ./setupBashTmuxFzfNo_ZoxideFromUbuntu.sh && \
     rm -rf ~/myShellEnv
-
-COPY --from=model-hub /models /models
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
