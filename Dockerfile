@@ -56,6 +56,9 @@ COPY supervisor/app.conf  /etc/supervisor/conf.d/
 COPY supervisor/app.sh /opt/supervisor-scripts/
 RUN chmod +x /opt/supervisor-scripts/app.sh
 
+COPY bootScript/20-my-first-boot.sh /etc/vast_boot.d/first_boot/
+RUN chmod +x /etc/vast_boot.d/first_boot/20-my-first-boot.sh
+
 ENTRYPOINT ["entrypoint.sh"]
 
 # CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
