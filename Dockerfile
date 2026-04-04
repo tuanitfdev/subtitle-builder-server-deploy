@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install /data/whl/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl && rm -rf /data/whl
 
 RUN mkdir -p ~/myShellEnv && curl -L https://github.com/tuanitfdev/myShellEnv/tarball/main | tar -C ~/myShellEnv -xz --strip-components=1 && cd ~/myShellEnv/src && \
-    bash ./initZsh01BashTmuxFzfZoxideFromUbuntuDocker.sh && \
+    bash ./setupBash02TmuxFzfNo_ZoxideFromUbuntu.sh && \
     rm -rf ~/myShellEnv
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
