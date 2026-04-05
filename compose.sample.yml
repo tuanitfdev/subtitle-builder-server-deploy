@@ -24,11 +24,11 @@ services:
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:
       - .:/opt/ws
-      - ./supervisor/script/instance_portal.sh:/opt/supervisor-scripts/instance_portal.sh
-      - ./supervisor/script/tensorboard.sh:/opt/supervisor-scripts/tensorboard.sh
-      - ./supervisor/script/tunnel_manager.sh:/opt/supervisor-scripts/tunnel_manager.sh
-      - ./supervisor/script/jupyter.sh:/opt/supervisor-scripts/jupyter.sh
-      - ./supervisor/script/syncthing.sh:/opt/supervisor-scripts/syncthing.sh
+      # - ./supervisor/script/instance_portal.sh:/opt/supervisor-scripts/instance_portal.sh
+      # - ./supervisor/script/tensorboard.sh:/opt/supervisor-scripts/tensorboard.sh
+      # - ./supervisor/script/tunnel_manager.sh:/opt/supervisor-scripts/tunnel_manager.sh
+      # - ./supervisor/script/jupyter.sh:/opt/supervisor-scripts/jupyter.sh
+      # - ./supervisor/script/syncthing.sh:/opt/supervisor-scripts/syncthing.sh
     # Sử dụng file .env cho biến môi trường
     env_file:
       - .env

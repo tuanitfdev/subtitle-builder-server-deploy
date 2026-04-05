@@ -59,6 +59,12 @@ RUN chmod +x /opt/supervisor-scripts/app.sh
 COPY bootScript/80-my-custom-boot.sh /etc/vast_boot.d/
 RUN chmod +x /etc/vast_boot.d/80-my-custom-boot.sh
 
+ENV OPEN_BUTTON_PORT="1111"
+ENV OPEN_BUTTON_TOKEN="1"
+ENV JUPYTER_DIR="/"
+ENV DATA_DIRECTORY="/workspace/"
+ENV PORTAL_CONFIG="localhost:1111:11111:/:Instance Portal|localhost:8080:18080:/:Jupyter|localhost:8080:8080:/terminals/1:Jupyter Terminal|localhost:8384:18384:/:Syncthing|localhost:6006:16006:/:Tensorboard|localhost:18000:8000:/:Subtitle Builder"
+
 ENTRYPOINT ["entrypoint.sh"]
 
 # CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]

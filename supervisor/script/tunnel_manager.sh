@@ -1,0 +1,14 @@
+#!/bin/bash
+
+utils=/opt/supervisor-scripts/utils
+. "${utils}/logging.sh"
+. "${utils}/cleanup_generic.sh"
+. "${utils}/environment.sh"
+. "${utils}/exit_serverless.sh"
+. "${utils}/exit_portal.sh" "instance portal"
+
+# More stable default
+export TUNNEL_TRANSPORT_PROTOCOL=${TUNNEL_TRANSPORT_PROTOCOL:-http2}
+
+cd /opt/portal-aio/tunnel_manager
+pty /opt/portal-aio/venv/bin/fastapi run --host 0.0.0.0 --port 11112 tunnel_manager.py 2>&1
