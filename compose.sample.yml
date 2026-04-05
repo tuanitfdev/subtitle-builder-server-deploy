@@ -18,9 +18,11 @@ services:
     #           count: all
     #           capabilities: [gpu]
     ports:
-      - "8000:8000"
       - "1111:11111"
       - "8080:18080"
+      - "8384:18384"
+      - "6006:16006"
+      - "18000:8000"
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:
       - .:/opt/ws
@@ -30,8 +32,8 @@ services:
       # - ./supervisor/script/jupyter.sh:/opt/supervisor-scripts/jupyter.sh
       # - ./supervisor/script/syncthing.sh:/opt/supervisor-scripts/syncthing.sh
     # Sử dụng file .env cho biến môi trường
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
     # Giữ container chạy ngầm (tương đương -it)
     stdin_open: true
     tty: true
