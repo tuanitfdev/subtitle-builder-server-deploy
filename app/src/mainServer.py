@@ -20,16 +20,16 @@ class SubtitleBuilderAPI(ls.LitAPI):
             print(f"Loading Whisper model on {device}...")
             # Load model stable-whisper (faster-whisper backend)
             # Optimized for GPU with float16 and Flash Attention 2 if available
-           # self.model = whisper.load_faster_whisper(
-           #     "deepdml/faster-whisper-large-v3-turbo-ct2", 
-           #     # "large-v3", 
-           #     device="cuda", 
-           #     compute_type="float16",
-           #     device_index=[0],
-           #     download_root="/data/models",
-           # )
-           # # print("da mock load faster whisper")
-           # self.r2_manager = R2Manager.get_instance()
+            self.model = whisper.load_faster_whisper(
+                "deepdml/faster-whisper-large-v3-turbo-ct2", 
+                # "large-v3", 
+                device="cuda", 
+                compute_type="float16",
+                device_index=[0],
+                download_root="/data/models",
+            )
+            # print("da mock load faster whisper")
+            self.r2_manager = R2Manager.get_instance()
         
         except Exception as e:
             MyLogger.log_error(f"Failed to load model or initialize R2Manager: {str(e)}", payload={
