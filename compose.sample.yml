@@ -18,11 +18,11 @@ services:
     #           count: all
     #           capabilities: [gpu]
     ports:
-      - "1111:11111"
-      - "8080:18080"
-      - "8384:18384"
-      - "6006:16006"
-      - "18000:8000"
+      - "1111:1111"
+      - "8080:8080"
+      - "8384:8384"
+      - "6006:6006"
+      - "8000:8000"
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:
       - .:/opt/ws

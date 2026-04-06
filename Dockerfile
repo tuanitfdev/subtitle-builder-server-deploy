@@ -41,9 +41,6 @@ RUN mkdir -p ~/myShellEnv && curl -L https://github.com/tuanitfdev/myShellEnv/ta
     bash ./setupBash02TmuxFzfNo_ZoxideFromUbuntu.sh && \
     rm -rf ~/myShellEnv
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY app/pyproject.toml pyproject.toml
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -52,20 +49,19 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY app .
 
-COPY supervisor/app.conf  /etc/supervisor/conf.d/
-COPY supervisor/app.sh /opt/supervisor-scripts/
-RUN chmod +x /opt/supervisor-scripts/app.sh
+# COPY supervisor/app.conf  /etc/supervisor/conf.d/
+# COPY supervisor/app.sh /opt/supervisor-scripts/
+# RUN chmod +x /opt/supervisor-scripts/app.sh
 
-COPY bootScript/80-my-custom-boot.sh /etc/vast_boot.d/
-RUN chmod +x /etc/vast_boot.d/80-my-custom-boot.sh
+# COPY bootScript/80-my-custom-boot.sh /etc/vast_boot.d/
+# RUN chmod +x /etc/vast_boot.d/80-my-custom-boot.sh
 
-ENV OPEN_BUTTON_PORT="1111"
-ENV OPEN_BUTTON_TOKEN="1"
-ENV JUPYTER_DIR="/"
-ENV DATA_DIRECTORY="/workspace/"
-ENV PORTAL_CONFIG="localhost:1111:11111:/:Instance Portal|localhost:8080:18080:/:Jupyter|localhost:8080:8080:/terminals/1:Jupyter Terminal|localhost:8384:18384:/:Syncthing|localhost:6006:16006:/:Tensorboard|localhost:18000:8000:/:Subtitle Builder"
+# COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENTRYPOINT ["entrypoint.sh"]
+# ENV PORTAL_CONFIG="Subtitle Builder:18000:8000"
+
+# ENTRYPOINT ["entrypoint.sh"]
 
 # CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 # with default config at /etc/supervisor/supervisord.conf 
