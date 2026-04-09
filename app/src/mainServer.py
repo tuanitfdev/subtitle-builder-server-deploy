@@ -1,3 +1,4 @@
+import argparse
 import litserve as ls
 import torch
 import stable_whisper as whisper
@@ -28,7 +29,7 @@ class SubtitleBuilderAPI(ls.LitAPI):
                 device_index=[0],
                 download_root="/data/models",
             )
-            # print("da mock load faster whisper")
+            print("da mock load faster whisper")
             self.r2_manager = R2Manager.get_instance()
         
         except Exception as e:
@@ -157,6 +158,11 @@ class SubtitleBuilderAPI(ls.LitAPI):
             raise HTTPException(status_code=500, detail="Failed to encode response or clean up")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="SubtitleBuilderAPI Server")
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host address to listen on")
+    parser.add_argument("--port", type=int, default=8000, help="Port to listen on")
+    args = parser.parse_args()
+
     api = SubtitleBuilderAPI(enable_async=True)
     
     # Server configuration
@@ -168,4 +174,4 @@ if __name__ == "__main__":
         timeout=600           # Tăng timeout cho audio dài
     )
     
-    server.run(port=8000, generate_client_file=False)
+    server.run(host=args.host, port=args.port, generate_client_file=False)

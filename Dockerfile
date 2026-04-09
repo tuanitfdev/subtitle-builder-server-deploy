@@ -1,4 +1,4 @@
-# FROM ghcr.io/tuanitfdev/whisper-model-hub-deploy:latest as model-hub
+FROM ghcr.io/tuanitfdev/whisper-model-hub-deploy:latest as model-hub
 
 # FROM tuanitfdev/whisper-model-hub:latest
 
@@ -29,17 +29,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# COPY --from=model-hub /data/models /data/models
-# COPY --from=model-hub /data/cacheTorchHub /root/.cache/torch/hub
-# COPY --from=model-hub /data/whl /data/whl
+COPY --from=model-hub /data/models /data/models
+COPY --from=model-hub /data/cacheTorchHub /root/.cache/torch/hub
+COPY --from=model-hub /data/whl /data/whl
 
 # # Cài đặt flash-attn từ pre-built wheel
-# RUN --mount=type=cache,target=/root/.cache/uv \
-#     uv pip install /data/whl/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl && rm -rf /data/whl
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install /data/whl/flash_attn-2.8.3+cu12torch2.9cxx11abiTRUE-cp312-cp312-linux_x86_64.whl && rm -rf /data/whl
 
-# RUN mkdir -p ~/myShellEnv && curl -L https://github.com/tuanitfdev/myShellEnv/tarball/main | tar -C ~/myShellEnv -xz --strip-components=1 && cd ~/myShellEnv/src && \
-#     bash ./setupBash02TmuxFzfNo_ZoxideFromUbuntu.sh && \
-#     rm -rf ~/myShellEnv
+RUN mkdir -p ~/myShellEnv && curl -L https://github.com/tuanitfdev/myShellEnv/tarball/main | tar -C ~/myShellEnv -xz --strip-components=1 && cd ~/myShellEnv/src && \
+    bash ./script/setupZsh01PreAppendBashrcTmuxFzfZoxideFromUbuntu.sh
 
 # Cài đặt các dependencies từ pyproject.toml với mount cache
 COPY app/pyproject.toml pyproject.toml
@@ -53,8 +52,8 @@ COPY supervisor/app.conf  /etc/supervisor/conf.d/
 COPY supervisor/app.sh /opt/supervisor-scripts/
 RUN chmod +x /opt/supervisor-scripts/app.sh
 
-# COPY bootScript/80-my-custom-boot.sh /etc/vast_boot.d/
-# RUN chmod +x /etc/vast_boot.d/80-my-custom-boot.sh
+COPY bootScript/80-my-custom-boot.sh /etc/vast_boot.d/
+RUN chmod +x /etc/vast_boot.d/80-my-custom-boot.sh
 
 # COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 # RUN chmod +x /usr/local/bin/entrypoint.sh

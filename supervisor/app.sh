@@ -1,9 +1,13 @@
 #!/bin/bash
-# export PYTHONUNBUFFERED=1
 mkdir -p /models
-
 mkdir -p /opt/ws/app/data/log
 
+# Import logging utilities for Portal log viewer
+utils=/opt/supervisor-scripts/utils
+. "${utils}/logging.sh"
+. "${utils}/environment.sh"
+
+source /venv/main/bin/activate
+
 cd /opt/ws/app
-#exec python src/mainServer.py
-exec /venv/main/bin/python -u src/mainServer.py
+exec python -u src/mainServer.py --host=127.0.0.1 --port=18000
