@@ -19,9 +19,9 @@ services:
     #           capabilities: [gpu]
     ports:
       - "1111:1111"
-      - "8080:8080"
-      - "8384:8384"
-      - "6006:6006"
+      # - "8080:8080"
+      # - "8384:8384"
+      # - "6006:6006"
       - "8000:8000"
     # Mount thư mục hiện tại vào container để dev không cần build lại liên tục
     volumes:

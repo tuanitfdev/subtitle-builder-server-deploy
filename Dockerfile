@@ -48,6 +48,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy toàn bộ code vào sau cùng
 COPY app .
 
+COPY portal-aio/caddy_manager/caddy_config_manager.py /opt/portal-aio/caddy_manager/caddy_config_manager.py
+
 COPY supervisor/app.conf  /etc/supervisor/conf.d/
 COPY supervisor/app.sh /opt/supervisor-scripts/
 RUN chmod +x /opt/supervisor-scripts/app.sh
